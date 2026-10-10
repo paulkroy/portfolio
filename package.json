@@ -6,7 +6,7 @@
     "build": "astro build",
     "preview": "npm run build && wrangler dev",
     "check": "astro check",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run build && node scripts/verify-build.mjs && wrangler deploy",
     "screenshots": "node scripts/screenshot.mjs"
   },
   "devDependencies": {
