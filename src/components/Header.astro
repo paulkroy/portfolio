@@ -1,5 +1,6 @@
 ---
 import { site } from '../data/site';
+import XRay from './XRay.astro';
 
 const links = [
   { href: '/#work', label: 'Work' },
@@ -11,7 +12,7 @@ const links = [
 ---
 
 <header class="site-header">
-  <div class="container bar">
+  <div class="container bar" data-xray="header xray-toggle">
     <a href="/" class="brand" aria-label={`${site.name}, home`}>
       <span class="dot" aria-hidden="true"></span>
       <span>{site.name}</span>
@@ -22,6 +23,7 @@ const links = [
         {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
       </ul>
     </nav>
+    <XRay />
   </div>
 </header>
 
@@ -37,7 +39,6 @@ const links = [
   .bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 1rem;
     min-height: 4rem;
   }
@@ -60,6 +61,7 @@ const links = [
     font-weight: 400;
     color: var(--muted);
   }
+  nav { margin-left: auto; }
   nav ul {
     display: flex;
     gap: clamp(0.75rem, 0.4rem + 1.5vw, 1.75rem);
@@ -76,6 +78,7 @@ const links = [
 
   @media (max-width: 640px) {
     .coords { display: none; }
+    .bar :global(.xray-toggle span) { display: none; }
   }
   @media (max-width: 420px) {
     nav li:nth-child(3) { display: none; }

@@ -4,14 +4,16 @@ import { getShot, hostname, type Project } from '../lib/projects';
 
 interface Props {
   project: Project;
+  /** X-ray annotation id to attach to this card. */
+  xray?: string;
 }
 
-const { project } = Astro.props;
+const { project, xray } = Astro.props;
 const { name, url, industry, location, summary, stack } = project.data;
 const shot = getShot(project.id, 'desktop');
 ---
 
-<article class="card">
+<article class="card" data-xray={xray}>
   <a href={`/work/${project.id}`} class="frame" tabindex="-1" aria-hidden="true">
     <div class="chrome"><span></span><span></span><span></span><em class="mono">{hostname(url)}</em></div>
     {shot ? (

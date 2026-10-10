@@ -19,7 +19,9 @@ import StatusBoard from '../components/StatusBoard.svelte';
       </p>
     </div>
 
-    <StatusBoard client:load />
+    <div data-xray="status-board">
+      <StatusBoard client:load />
+    </div>
 
     <div class="how">
       <h2>How it works</h2>
