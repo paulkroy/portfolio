@@ -1,9 +1,27 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "paul-portfolio",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // Only API routes hit the Worker; everything else is served straight from the asset cache.
+    // `/__scheduled` is wrangler dev's cron test hook (`--test-scheduled`); in production it falls through to a 404.
+    "run_worker_first": ["/api/*", "/__scheduled"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "paul-portfolio-status",
+      "database_id": "e8a9fa38-b6fb-44eb-9a41-89bd6b98a64d",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    // Check every client site every 5 minutes.
+    "crons": ["*/5 * * * *"]
+  },
+  "observability": { "enabled": true }
 }

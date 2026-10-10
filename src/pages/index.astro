@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import MapStatic from '../components/MapStatic.astro';
 import MapLive, { type Pin } from '../components/MapLive';
 import ProjectCard from '../components/ProjectCard.astro';
+import StatusBoard from '../components/StatusBoard.svelte';
 import { getProjects, hostname } from '../lib/projects';
 import { site } from '../data/site';
 
@@ -68,6 +69,17 @@ const usedBy = (tool: string) => projects.filter((p) => p.data.stack.includes(to
         </li>
       ))}
     </ul>
+  </section>
+
+  <section id="status" class="section container">
+    <div class="section-head">
+      <h2>Live status</h2>
+      <p>
+        I don't just launch sites, I keep them running. A Cloudflare Worker checks every one of them every 5 minutes.
+        <a href="/status">How it works →</a>
+      </p>
+    </div>
+    <StatusBoard client:visible compact />
   </section>
 
   <section id="toolkit" class="section container">

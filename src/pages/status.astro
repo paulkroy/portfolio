@@ -1,0 +1,58 @@
+---
+import Base from '../layouts/Base.astro';
+import StatusBoard from '../components/StatusBoard.svelte';
+---
+
+<Base
+  title="Live status"
+  description="Live uptime and response times for the client websites Paul Roy builds and maintains, checked every 5 minutes from Cloudflare's edge."
+>
+  <section class="container section">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Live · refreshes every minute</p>
+        <h1>Client site status</h1>
+      </div>
+      <p>
+        Every 5 minutes a Cloudflare Worker requests each site I've built, times the response and stores the result in
+        a D1 database. This page reads it back through a small JSON API.
+      </p>
+    </div>
+
+    <StatusBoard client:load />
+
+    <div class="how">
+      <h2>How it works</h2>
+      <ol>
+        <li><strong>Cron trigger.</strong> Cloudflare runs the Worker's <code>scheduled()</code> handler every 5 minutes.</li>
+        <li>
+          <strong>Checks.</strong> All sites are requested in parallel with a 10-second timeout. The response time is
+          the time to the first response headers, and the body is never downloaded.
+        </li>
+        <li>
+          <strong>Storage.</strong> Results go into D1 (Cloudflare's SQLite) in a single batch, and rows older than 30
+          days are pruned in the same batch.
+        </li>
+        <li>
+          <strong>API.</strong> <a href="/api/status"><code>/api/status</code></a> aggregates uptime and medians, and is
+          cached at the edge for 60 seconds.
+        </li>
+        <li><strong>UI.</strong> This board is a Svelte island that polls the API once a minute.</li>
+      </ol>
+      <p class="muted">
+        The list of sites comes from the same markdown files that generate the case studies, so adding a project adds
+        it to monitoring.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  h1 { font-size: var(--step-3); margin-top: 0.5rem; }
+  .how { max-width: 65ch; margin-top: clamp(3rem, 2rem + 3vw, 5rem); }
+  .how h2 { font-size: var(--step-2); margin-bottom: 1.25rem; }
+  .how ol { display: grid; gap: 0.9rem; padding-left: 1.25rem; color: var(--muted); }
+  .how strong { color: var(--text); font-weight: 600; }
+  .how p { margin-top: 1.5rem; }
+  code { font-family: var(--font-mono); font-size: 0.9em; padding: 0.1em 0.35em; border-radius: 4px; background: var(--surface-2); color: var(--text); }
+</style>
