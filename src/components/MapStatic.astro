@@ -1,0 +1,144 @@
+---
+// Zero-JS SVG map of where the client work is. Plots each project's
+// coordinates onto a simple equirectangular grid centred near the CBD.
+import type { Project } from '../lib/projects';
+
+interface Props {
+  projects: Project[];
+}
+
+const { projects } = Astro.props;
+
+const bounds = { north: -37.55, south: -37.98, west: 144.86, east: 145.5 };
+const cbd: [number, number] = [-37.8136, 144.9631];
+
+// Scale longitude by cos(latitude) so distances look right at Melbourne's latitude.
+const kx = Math.cos((37.8 * Math.PI) / 180);
+const width = 640;
+const height = Math.round((width * (bounds.north - bounds.south)) / ((bounds.east - bounds.west) * kx));
+
+const x = (lng: number) => ((lng - bounds.west) / (bounds.east - bounds.west)) * width;
+const y = (lat: number) => ((bounds.north - lat) / (bounds.north - bounds.south)) * height;
+const kmToPx = (km: number) => (km / 111.2 / (bounds.north - bounds.south)) * height;
+
+const gridLng = [144.9, 145.0, 145.1, 145.2, 145.3, 145.4];
+const gridLat = [-37.6, -37.7, -37.8, -37.9];
+const rings = [10, 20, 30, 40];
+
+// Online-only businesses have no physical location to plot.
+const located = projects.filter((p) => p.data.location !== 'Online store');
+const pins = located.map((p) => ({
+  slug: p.id,
+  name: p.data.name,
+  location: p.data.location,
+  cx: x(p.data.coords[1]),
+  cy: y(p.data.coords[0]),
+}));
+---
+
+<figure class="map">
+  <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby="map-title map-desc">
+    <title id="map-title">Map of client projects around Melbourne</title>
+    <desc id="map-desc">
+      {pins.length} projects plotted across Melbourne, from the Yarra Valley in the east to Craigieburn in the north.
+    </desc>
+
+    <g class="grid" aria-hidden="true">
+      {gridLng.map((lng) => (
+        <g>
+          <line x1={x(lng)} x2={x(lng)} y1="0" y2={height} />
+          <text x={x(lng) + 4} y={height - 8}>{lng.toFixed(1)}°E</text>
+        </g>
+      ))}
+      {gridLat.map((lat) => (
+        <g>
+          <line y1={y(lat)} y2={y(lat)} x1="0" x2={width} />
+          <text x="6" y={y(lat) - 6}>{Math.abs(lat).toFixed(1)}°S</text>
+        </g>
+      ))}
+    </g>
+
+    <g class="rings" aria-hidden="true">
+      {rings.map((km) => (
+        <g>
+          <circle cx={x(cbd[1])} cy={y(cbd[0])} r={kmToPx(km)} />
+          {km < 40 && <text x={x(cbd[1]) + kmToPx(km) * 0.71 + 4} y={y(cbd[0]) - kmToPx(km) * 0.71}>{km} km</text>}
+        </g>
+      ))}
+    </g>
+
+    <g class="cbd" aria-hidden="true">
+      <rect x={x(cbd[1]) - 4} y={y(cbd[0]) - 4} width="8" height="8" />
+      <text x={x(cbd[1]) + 10} y={y(cbd[0]) + 4}>CBD</text>
+    </g>
+
+    {pins.map((pin, i) => (
+      <a href={`/work/${pin.slug}`} class="pin" style={`--i:${i}`}>
+        <title>{`${pin.name}, ${pin.location}`}</title>
+        <circle class="halo" cx={pin.cx} cy={pin.cy} r="14" />
+        <circle class="core" cx={pin.cx} cy={pin.cy} r="5" />
+        <text x={pin.cx + 10} y={pin.cy - 10} text-anchor={pin.cx > width * 0.7 ? 'end' : 'start'} dx={pin.cx > width * 0.7 ? -20 : 0}>
+          {pin.name}
+        </text>
+      </a>
+    ))}
+  </svg>
+  <figcaption class="mono">{pins.length} client locations · Greater Melbourne</figcaption>
+</figure>
+
+<style>
+  .map {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) * 1.5);
+    background:
+      radial-gradient(circle at 30% 45%, color-mix(in oklab, var(--accent) 7%, transparent), transparent 60%),
+      var(--surface);
+    overflow: hidden;
+  }
+  svg { width: 100%; }
+  figcaption {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .grid line { stroke: var(--line); stroke-width: 1; }
+  .grid text,
+  .rings text { fill: var(--muted); font: 10px var(--font-mono); opacity: 0.7; }
+  .rings circle { fill: none; stroke: var(--line); stroke-dasharray: 3 5; }
+  .cbd rect { fill: var(--text); }
+  .cbd text { fill: var(--text); font: 600 11px var(--font-mono); }
+
+  .pin { cursor: pointer; outline: none; }
+  .pin .core { fill: var(--pin); stroke: var(--bg); stroke-width: 2; transition: r 0.2s var(--ease); }
+  .pin .halo {
+    fill: var(--pin);
+    opacity: 0.18;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pulse 3s var(--ease) infinite;
+    animation-delay: calc(var(--i) * 0.3s);
+  }
+  .pin text {
+    fill: var(--text);
+    font: 500 12px var(--font-sans);
+    paint-order: stroke;
+    stroke: var(--surface);
+    stroke-width: 4px;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease);
+  }
+  .pin:hover text,
+  .pin:focus-visible text { opacity: 1; }
+  .pin:hover .core,
+  .pin:focus-visible .core { r: 7; }
+  .pin:focus-visible .halo { opacity: 0.5; animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(0.6); opacity: 0.3; }
+    50% { transform: scale(1.4); opacity: 0.08; }
+  }
+</style>

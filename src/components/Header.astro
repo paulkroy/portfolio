@@ -1,0 +1,82 @@
+---
+import { site } from '../data/site';
+
+const links = [
+  { href: '/#work', label: 'Work' },
+  { href: '/#toolkit', label: 'Toolkit' },
+  { href: '/#about', label: 'About' },
+  { href: '/#contact', label: 'Contact' },
+];
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a href="/" class="brand" aria-label={`${site.name}, home`}>
+      <span class="dot" aria-hidden="true"></span>
+      <span>{site.name}</span>
+      <span class="coords mono" aria-hidden="true">37.81°S 144.96°E</span>
+    </a>
+    <nav aria-label="Main">
+      <ul>
+        {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in oklab, var(--bg) 82%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4rem;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 25%, transparent);
+  }
+  .coords {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  nav ul {
+    display: flex;
+    gap: clamp(0.75rem, 0.4rem + 1.5vw, 1.75rem);
+    padding: 0;
+    list-style: none;
+  }
+  nav a {
+    font-size: var(--step--1);
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    .coords { display: none; }
+  }
+  @media (max-width: 420px) {
+    nav li:nth-child(2) { display: none; }
+  }
+</style>

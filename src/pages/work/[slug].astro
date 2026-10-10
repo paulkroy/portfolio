@@ -1,0 +1,140 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getProjects, getShot, hostname, type Project } from '../../lib/projects';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: {
+      project,
+      prev: projects[(i - 1 + projects.length) % projects.length],
+      next: projects[(i + 1) % projects.length],
+    },
+  }));
+}
+
+interface Props {
+  project: Project;
+  prev: Project;
+  next: Project;
+}
+
+const { project, prev, next } = Astro.props;
+const { name, url, industry, location, summary, stack, services } = project.data;
+const { Content } = await render(project);
+const desktop = getShot(project.id, 'desktop');
+const mobile = getShot(project.id, 'mobile');
+---
+
+<Base title={name} description={summary}>
+  <article class="container case">
+    <a class="back mono" href="/#work">← All work</a>
+
+    <header class="head">
+      <p class="eyebrow">{industry} · {location}</p>
+      <h1>{name}</h1>
+      <p class="lede">{summary}</p>
+      <a class="btn btn--primary" href={url} target="_blank" rel="noopener">
+        Visit {hostname(url)} <span aria-hidden="true">↗</span>
+      </a>
+    </header>
+
+    <dl class="meta">
+      <div><dt>Industry</dt><dd>{industry}</dd></div>
+      <div><dt>Location</dt><dd>{location}</dd></div>
+      <div><dt>My role</dt><dd>{services.join(', ')}</dd></div>
+      <div><dt>Stack</dt><dd><ul class="chips">{stack.map((s) => <li>{s}</li>)}</ul></dd></div>
+    </dl>
+
+    {desktop && (
+      <div class="shots">
+        <figure class="browser">
+          <div class="chrome"><span></span><span></span><span></span><em class="mono">{hostname(url)}</em></div>
+          <Image src={desktop} alt={`${name} homepage on desktop`} widths={[640, 960, 1440]} sizes="(max-width: 900px) 100vw, 860px" loading="eager" />
+        </figure>
+        {mobile && (
+          <figure class="phone">
+            <Image src={mobile} alt={`${name} homepage on mobile`} widths={[260, 390]} sizes="260px" />
+          </figure>
+        )}
+      </div>
+    )}
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <nav class="pager" aria-label="More projects">
+      <a href={`/work/${prev.id}`}><span class="eyebrow">Previous</span>{prev.data.name}</a>
+      <a href={`/work/${next.id}`} class="next"><span class="eyebrow">Next</span>{next.data.name}</a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .case { padding-block: 2rem var(--section); }
+  .back { display: inline-block; margin-bottom: 2.5rem; font-size: var(--step--1); color: var(--muted); text-decoration: none; }
+  .back:hover { color: var(--text); }
+
+  .head { display: grid; gap: 1.25rem; justify-items: start; max-width: 50rem; }
+  h1 { font-size: var(--step-4); }
+  .lede { font-size: var(--step-1); line-height: 1.5; color: var(--muted); }
+
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 1.5rem;
+    margin-block: clamp(2.5rem, 2rem + 2vw, 4rem);
+    padding-block: 1.5rem;
+    border-block: 1px solid var(--line);
+  }
+  .meta dt { margin-bottom: 0.4rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+
+  .shots {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: end;
+    margin-bottom: clamp(3rem, 2rem + 3vw, 5rem);
+  }
+  @media (min-width: 900px) {
+    .shots { grid-template-columns: 1fr 260px; }
+  }
+  .browser {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .chrome { display: flex; align-items: center; gap: 0.35rem; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--line); }
+  .chrome span { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--line); }
+  .chrome em { margin-left: 0.5rem; font-size: 0.75rem; font-style: normal; color: var(--muted); }
+  .phone {
+    justify-self: center;
+    width: min(260px, 70vw);
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 32px;
+    background: var(--surface);
+  }
+  .phone img { border-radius: 24px; aspect-ratio: 390 / 844; object-fit: cover; object-position: top; }
+
+  .prose { max-width: 65ch; }
+  .prose :global(p) { margin-bottom: 1.25rem; color: var(--muted); font-size: var(--step-1); line-height: 1.6; }
+  .prose :global(h2) { margin: 2.5rem 0 1rem; font-size: var(--step-2); }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: var(--section);
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+  }
+  .pager a { display: grid; gap: 0.25rem; font-size: var(--step-1); font-weight: 600; text-decoration: none; }
+  .pager a:hover { color: var(--accent); }
+  .pager .next { text-align: right; }
+</style>
