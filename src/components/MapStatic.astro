@@ -83,6 +83,7 @@ const pins = located.map((p) => ({
       </a>
     ))}
   </svg>
+  <slot />
   <figcaption class="mono">{pins.length} client locations · Greater Melbourne</figcaption>
 </figure>
 
@@ -99,8 +100,14 @@ const pins = located.map((p) => ({
   svg { width: 100%; }
   figcaption {
     position: absolute;
+    z-index: 2;
+    pointer-events: none;
     top: 0.9rem;
     right: 1rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--surface) 88%, transparent);
     font-size: 0.72rem;
     color: var(--muted);
   }

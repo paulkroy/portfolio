@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import MapStatic from '../components/MapStatic.astro';
+import MapLive, { type Pin } from '../components/MapLive';
 import ProjectCard from '../components/ProjectCard.astro';
 import { getProjects, hostname } from '../lib/projects';
 import { site } from '../data/site';
@@ -8,6 +9,9 @@ import { site } from '../data/site';
 const projects = await getProjects();
 const featured = projects.filter((p) => p.data.featured);
 const more = projects.filter((p) => !p.data.featured);
+const pins: Pin[] = projects
+  .filter((p) => p.data.location !== 'Online store')
+  .map((p) => ({ slug: p.id, name: p.data.name, industry: p.data.industry, location: p.data.location, coords: p.data.coords }));
 const suburbs = new Set(projects.map((p) => p.data.location).filter((l) => l !== 'Online store'));
 
 // Toolkit: every tool links to the live projects that prove it.
@@ -38,7 +42,9 @@ const usedBy = (tool: string) => projects.filter((p) => p.data.stack.includes(to
         <div><dt>Industries</dt><dd>{new Set(projects.map((p) => p.data.industry)).size}</dd></div>
       </dl>
     </div>
-    <MapStatic projects={projects} />
+    <MapStatic projects={projects}>
+      <MapLive client:visible pins={pins} />
+    </MapStatic>
   </section>
 
   <section id="work" class="section container">
