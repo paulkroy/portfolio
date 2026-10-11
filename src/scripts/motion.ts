@@ -74,8 +74,8 @@ function initCursor() {
   if (!dot || !ring) return;
 
   document.documentElement.classList.add('custom-cursor');
-  const ringX = gsap.quickTo(ring, 'x', { duration: 0.5, ease: 'power3.out' });
-  const ringY = gsap.quickTo(ring, 'y', { duration: 0.5, ease: 'power3.out' });
+  const ringX = gsap.quickTo(ring, 'x', { duration: 0.12, ease: 'power2.out' });
+  const ringY = gsap.quickTo(ring, 'y', { duration: 0.12, ease: 'power2.out' });
 
   window.addEventListener('pointermove', (e) => {
     gsap.set(dot, { x: e.clientX, y: e.clientY });
