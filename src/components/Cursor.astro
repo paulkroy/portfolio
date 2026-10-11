@@ -1,0 +1,47 @@
+<!-- Custom cursor: src/scripts/motion.ts adds html.custom-cursor and shows these, on fine pointers only -->
+<div class="cursor-ring" aria-hidden="true"></div>
+<div class="cursor-dot" aria-hidden="true"></div>
+
+<style is:global>
+  .cursor-dot,
+  .cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 200;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease);
+  }
+  .cursor-dot {
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    background: var(--text);
+  }
+  .cursor-ring {
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    border: 1px solid var(--muted);
+    transition: opacity 0.2s var(--ease), width 0.3s var(--ease), height 0.3s var(--ease), margin 0.3s var(--ease), border-color 0.3s var(--ease);
+  }
+  .cursor-ring[data-hot='true'] {
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    border-color: var(--accent);
+  }
+  .custom-cursor,
+  .custom-cursor * { cursor: none !important; }
+  .custom-cursor .cursor-dot,
+  .custom-cursor .cursor-ring { display: block; }
+  .cursor-dot,
+  .cursor-ring { display: none; }
+
+  /* Touch and reduced-motion visitors keep the native cursor */
+  @media (hover: none), (pointer: coarse) {
+    .cursor-dot, .cursor-ring { display: none !important; }
+  }
+</style>

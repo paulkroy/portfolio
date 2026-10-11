@@ -27,7 +27,8 @@
   --section: clamp(4rem, 3rem + 5vw, 8rem);
   --radius: 10px;
   --max: 1200px;
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --pill: 999px;
 }
 
 @media (prefers-color-scheme: light) {
@@ -109,7 +110,11 @@ p { text-wrap: pretty; }
   margin-inline: auto;
 }
 
-.section { padding-block: var(--section); }
+/* Sections are split by a 1px line, never by boxes or shadows */
+.section {
+  padding-block: var(--section);
+  border-top: 1px solid var(--line);
+}
 
 .eyebrow {
   font-family: var(--font-mono);
@@ -186,8 +191,33 @@ p { text-wrap: pretty; }
 .chips li {
   padding: 0.2em 0.65em;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--pill);
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--muted);
+}
+
+/* ---------- Motion ---------- */
+/* Lenis owns scrolling, so the CSS smooth-scroll would fight it */
+html.lenis,
+html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.anim-page-in { animation: page-in 0.8s var(--ease) both; }
+
+/* Page transitions via the View Transitions API (same-origin navigation) */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: 300ms var(--ease) both page-out; }
+::view-transition-new(root) { animation: 500ms var(--ease) both page-in; }
+@keyframes page-out { to { opacity: 0; transform: translateY(-8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation-duration: 0.01ms; }
 }
