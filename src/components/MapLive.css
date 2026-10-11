@@ -75,6 +75,4 @@
   font-size: 0.95rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  .map-live { --ctrl-filter: invert(1); }
-}
+.map-live { --ctrl-filter: invert(1); }

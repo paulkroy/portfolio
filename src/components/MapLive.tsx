@@ -17,12 +17,8 @@ export interface Pin {
   coords: [number, number]; // [lat, lng]
 }
 
-const STYLES = {
-  dark: 'https://tiles.openfreemap.org/styles/dark',
-  light: 'https://tiles.openfreemap.org/styles/positron',
-};
-
-const darkQuery = '(prefers-color-scheme: dark)';
+// The site is dark only, so the map always uses the dark basemap.
+const STYLE = 'https://tiles.openfreemap.org/styles/dark';
 const motionQuery = '(prefers-reduced-motion: reduce)';
 
 export default function MapLive({ pins }: { pins: Pin[] }) {
@@ -34,7 +30,6 @@ export default function MapLive({ pins }: { pins: Pin[] }) {
   useEffect(() => {
     let cancelled = false;
     let popup: Popup | null = null;
-    const scheme = window.matchMedia(darkQuery);
     const reduced = window.matchMedia(motionQuery).matches;
 
     async function init() {
@@ -48,7 +43,7 @@ export default function MapLive({ pins }: { pins: Pin[] }) {
 
       const map = new maplibre.Map({
         container: container.current,
-        style: scheme.matches ? STYLES.dark : STYLES.light,
+        style: STYLE,
         bounds: [
           [Math.min(...lngs), Math.min(...lats)],
           [Math.max(...lngs), Math.max(...lats)],
@@ -95,14 +90,10 @@ export default function MapLive({ pins }: { pins: Pin[] }) {
       map.on('error', (e) => console.warn('[map]', e.error?.message));
     }
 
-    const onScheme = () => mapRef.current?.setStyle(scheme.matches ? STYLES.dark : STYLES.light);
-    scheme.addEventListener('change', onScheme);
-
     init().catch((err) => console.warn('[map] falling back to static map:', err));
 
     return () => {
       cancelled = true;
-      scheme.removeEventListener('change', onScheme);
       mapRef.current?.remove();
       mapRef.current = null;
     };
