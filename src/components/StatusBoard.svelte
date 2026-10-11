@@ -246,11 +246,6 @@
 
   .compact th, .compact td { padding-block: 0.65rem; }
 
-  @media (prefers-color-scheme: light) {
-    .dot.up { background: #12a150; }
-    .bad, .dot.down { color: #c62828; }
-    .dot.down { background: #c62828; }
-  }
   @media (max-width: 640px) {
     th, td { padding-inline: 1rem; }
     .compact .spark-col,

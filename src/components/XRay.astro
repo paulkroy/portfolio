@@ -28,7 +28,7 @@ import { annotations } from '../data/xray';
     {a.body.map((p) => <p>{p}</p>)}
     <div class="xray-code">
       <p class="xray-code__file">{a.file}</p>
-      <Code code={a.code} lang={a.lang} themes={{ light: 'github-light', dark: 'github-dark-dimmed' }} defaultColor={false} />
+      <Code code={a.code} lang={a.lang} theme="github-dark-dimmed" />
     </div>
   </template>
 ))}
@@ -170,9 +170,6 @@ import { annotations } from '../data/xray';
     cursor: pointer;
     box-shadow: 0 2px 10px rgb(0 0 0 / 0.25);
   }
-  @media (prefers-color-scheme: light) {
-    .xray-tag { color: #fff; }
-  }
   .xray-tag:hover { filter: brightness(1.1); }
   .xray-tag:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
@@ -223,12 +220,6 @@ import { annotations } from '../data/xray';
     overflow-x: auto;
     font: 0.78rem/1.55 var(--font-mono);
     background: var(--surface-2) !important;
-  }
-  .xray-code .astro-code,
-  .xray-code .astro-code span { color: var(--shiki-light); }
-  @media (prefers-color-scheme: dark) {
-    .xray-code .astro-code,
-    .xray-code .astro-code span { color: var(--shiki-dark); }
   }
 
   @media (prefers-reduced-motion: no-preference) {
