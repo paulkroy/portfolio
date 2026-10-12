@@ -42,11 +42,23 @@ import { annotations } from '../data/xray';
 
   const enabled = () => root.hasAttribute('data-xray-on');
 
+  // The panel is a popover, so re-show the cursor layer to keep it on top
+  const cursorLayer = document.querySelector<HTMLElement>('.cursor-layer');
+  function raiseCursor() {
+    if (cursorLayer?.matches(':popover-open')) {
+      cursorLayer.hidePopover();
+      cursorLayer.showPopover();
+    }
+  }
+
   function open(id: string) {
     const tpl = document.getElementById(`xray-tpl-${id}`) as HTMLTemplateElement | null;
     if (!tpl) return;
     panelBody.replaceChildren(tpl.content.cloneNode(true));
-    if (!panel.matches(':popover-open')) panel.showPopover();
+    if (!panel.matches(':popover-open')) {
+      panel.showPopover();
+      raiseCursor();
+    }
     panel.scrollTop = 0;
     panel.querySelector<HTMLElement>('.xray-panel__close')?.focus();
   }
