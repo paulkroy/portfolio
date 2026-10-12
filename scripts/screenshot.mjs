@@ -46,6 +46,13 @@ for (const { slug, url } of projects) {
       // Sites with streaming assets (e.g. WebGL) never go network-idle, so fall back to `load`.
       await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 }).catch(() => page.waitForLoadState('load'));
       await page.waitForTimeout(2500);
+      // Some sites focus a form field on load (e.g. a tracking box), which scrolls the page to it.
+      // Blur it and return to the top so every capture starts at the hero.
+      await page.evaluate(() => {
+        document.activeElement?.blur();
+        window.scrollTo(0, 0);
+      });
+      await page.waitForTimeout(500);
       if (full) {
         // Scroll once through the page so lazy images load, then return to the top
         await page.evaluate(async () => {
