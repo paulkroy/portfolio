@@ -53,11 +53,13 @@ const mobile = getShot(project.id, 'mobile');
       <div class="shots">
         <figure class="browser">
           <div class="chrome"><span></span><span></span><span></span><em class="mono">{hostname(url)}</em></div>
-          <Image src={desktop} alt={`${name} homepage on desktop`} widths={[640, 960, 1440]} sizes="(max-width: 900px) 100vw, 860px" loading="eager" />
+          <div class="shot">
+            <Image src={desktop} alt={`${name} homepage on desktop`} widths={[960, 1280, 1440]} quality={90} sizes="(max-width: 900px) 100vw, 1366px" loading="eager" data-parallax />
+          </div>
         </figure>
         {mobile && (
           <figure class="phone">
-            <Image src={mobile} alt={`${name} homepage on mobile`} widths={[260, 390]} sizes="260px" />
+            <Image src={mobile} alt={`${name} homepage on mobile`} widths={[390, 520, 780]} quality={90} sizes="260px" />
           </figure>
         )}
       </div>
@@ -104,11 +106,14 @@ const mobile = getShot(project.id, 'mobile');
     .shots { grid-template-columns: 1fr 260px; }
   }
   .browser {
+    grid-column: 1 / -1;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
     background: var(--surface);
   }
+  .shot { position: relative; overflow: hidden; aspect-ratio: 21 / 10; }
+  .shot img { position: absolute; top: -15.6%; left: 0; width: 100%; height: auto; }
   .chrome { display: flex; align-items: center; gap: 0.35rem; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--line); }
   .chrome span { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--line); }
   .chrome em { margin-left: 0.5rem; font-size: 0.75rem; font-style: normal; color: var(--muted); }

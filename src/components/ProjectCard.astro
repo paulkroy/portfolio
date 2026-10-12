@@ -17,7 +17,9 @@ const shot = getShot(project.id, 'desktop');
   <a href={`/work/${project.id}`} class="frame" tabindex="-1" aria-hidden="true">
     <div class="chrome"><span></span><span></span><span></span><em class="mono">{hostname(url)}</em></div>
     {shot ? (
-      <Image src={shot} alt="" widths={[480, 720, 960]} sizes="(max-width: 800px) 100vw, 560px" />
+      <div class="shot">
+        <Image src={shot} alt="" widths={[560, 800, 1120, 1440]} quality={90} sizes="(max-width: 1000px) 100vw, 680px" data-parallax />
+      </div>
     ) : (
       <div class="placeholder mono">{hostname(url)}</div>
     )}
@@ -59,7 +61,10 @@ const shot = getShot(project.id, 'desktop');
   }
   .chrome span { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--line); }
   .chrome em { margin-left: 0.5rem; font-size: 0.7rem; font-style: normal; color: var(--muted); }
-  .frame img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
+  .frame { display: block; overflow: hidden; }
+  /* Box is much shorter than the 16:10 screenshot, so the image is never scaled and has room to drift */
+  .shot { position: relative; overflow: hidden; aspect-ratio: 21 / 10; }
+  .shot img { position: absolute; top: -15.6%; left: 0; width: 100%; height: auto; }
   .placeholder { display: grid; place-items: center; aspect-ratio: 16 / 10; color: var(--muted); }
 
   .body { display: grid; gap: 0.6rem; justify-items: start; }

@@ -47,6 +47,22 @@ if (!reduceMotion) {
     });
   });
 
+  // Screenshots drift a little against the scroll, like looking through a window.
+  // The image sits in a box much shorter than itself, so it drifts without being scaled (scaling softens it).
+  // It moves down through the box as the card rises, so the site's own header is in view as the card
+  // reaches the sticky page header (65px tall).
+  document.querySelectorAll<HTMLElement>('[data-parallax]').forEach((el) => {
+    gsap.fromTo(
+      el,
+      { yPercent: -11 },
+      {
+        yPercent: 11,
+        ease: 'none',
+        scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'top 65px', scrub: true },
+      },
+    );
+  });
+
   if (finePointer) {
     // Magnetic buttons: pulled toward the pointer, then spring back
     document.querySelectorAll<HTMLElement>('.btn').forEach((el) => {
