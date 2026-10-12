@@ -4,24 +4,15 @@ import MapStatic from '../components/MapStatic.astro';
 import MapLive, { type Pin } from '../components/MapLive';
 import ProjectCard from '../components/ProjectCard.astro';
 import StatusBoard from '../components/StatusBoard.svelte';
-import { getProjects, hostname } from '../lib/projects';
+import { getProjects } from '../lib/projects';
 import { site } from '../data/site';
 
 const projects = await getProjects();
 const featured = projects.filter((p) => p.data.featured);
-const more = projects.filter((p) => !p.data.featured);
 const pins: Pin[] = projects
   .filter((p) => p.data.location !== 'Online store')
   .map((p) => ({ slug: p.id, name: p.data.name, industry: p.data.industry, location: p.data.location, coords: p.data.coords }));
 const suburbs = new Set(projects.map((p) => p.data.location).filter((l) => l !== 'Online store'));
-
-// Toolkit: every tool links to the live projects that prove it.
-const groups = [
-  { title: 'Client platforms', blurb: 'Sites that clients can edit, sell from and rank with.', tools: ['WordPress', 'Bricks', 'WooCommerce', 'Stripe', 'Rank Math'] },
-  { title: 'Motion & interaction', blurb: 'Animation that explains a service or makes a page feel alive.', tools: ['GSAP', 'Lottie', 'Lenis', 'three.js'] },
-  { title: 'Code & infrastructure', blurb: 'Hand-built sites, deployed to the edge. Including this one.', tools: ['Astro', 'TypeScript', 'Cloudflare'] },
-];
-const usedBy = (tool: string) => projects.filter((p) => p.data.stack.includes(tool));
 ---
 
 <Base>
@@ -34,7 +25,7 @@ const usedBy = (tool: string) => projects.filter((p) => p.data.stack.includes(to
         Bricks for clients who need to edit their own site, and Astro, TypeScript and Cloudflare when the job calls for code.
       </p>
       <div class="actions">
-        <a class="btn btn--primary" href="#work">See the work</a>
+        <a class="btn btn--primary" href="/work">See the work</a>
         <a class="btn" href={`mailto:${site.email}`}>Email me</a>
       </div>
       <dl class="stats" data-xray="stats">
@@ -48,7 +39,7 @@ const usedBy = (tool: string) => projects.filter((p) => p.data.stack.includes(to
     </MapStatic>
   </section>
 
-  <section id="work" class="section container">
+  <section class="section container">
     <div class="section-head">
       <h2>Selected work</h2>
       <p>Real businesses with real customers. Every project links to the live site, so you can see it working.</p>
@@ -56,19 +47,9 @@ const usedBy = (tool: string) => projects.filter((p) => p.data.stack.includes(to
     <div class="grid">
       {featured.map((project, i) => <ProjectCard project={project} xray={i === 0 ? 'screenshots' : undefined} />)}
     </div>
-
-    <h3 class="more-title">More client work</h3>
-    <ul class="more">
-      {more.map((p) => (
-        <li>
-          <a href={`/work/${p.id}`} class="more-name">{p.data.name}</a>
-          <span class="muted">{p.data.industry} · {p.data.location}</span>
-          <a href={p.data.url} target="_blank" rel="noopener" class="more-url mono">
-            {hostname(p.data.url)} <span aria-hidden="true">↗</span>
-          </a>
-        </li>
-      ))}
-    </ul>
+    <div class="all-work">
+      <a class="btn" href="/work">All client work</a>
+    </div>
   </section>
 
   <section id="status" class="section container">
@@ -82,58 +63,6 @@ const usedBy = (tool: string) => projects.filter((p) => p.data.stack.includes(to
     <div data-xray="status-board">
       <StatusBoard client:visible compact />
     </div>
-  </section>
-
-  <section id="toolkit" class="section container">
-    <div class="section-head">
-      <h2>Toolkit</h2>
-      <p>No skill bars. Each tool links to the live projects where I've used it.</p>
-    </div>
-    <div class="toolkit" data-xray="toolkit">
-      {groups.map((g) => (
-        <div class="group">
-          <h3>{g.title}</h3>
-          <p class="muted">{g.blurb}</p>
-          <ul>
-            {g.tools.map((tool) => {
-              const used = usedBy(tool);
-              return (
-                <li>
-                  <span class="tool">{tool}</span>
-                  <span class="used muted">
-                    {used.length > 0
-                      ? used.map((p, i) => <>{i > 0 && ', '}<a href={`/work/${p.id}`}>{p.data.name}</a></>)
-                      : 'This site'}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
-    </div>
-  </section>
-
-  <section id="about" class="section container about">
-    <p class="eyebrow">About</p>
-    <div>
-      <h2>I'm Paul, a web developer at Melbourne Web Studio in Preston.</h2>
-      <p>
-        I take client sites from first conversation to launch: design, build, SEO and the maintenance that keeps them
-        running. Most of my clients are local trades and service businesses, so a site has to load fast, rank in local
-        search and make it easy to get a quote.
-      </p>
-      <p>
-        I also build outside the page-builder world. JM Berry Farms is hand-built in Astro with three.js, and this
-        portfolio is too, running on Cloudflare Workers.
-      </p>
-    </div>
-  </section>
-
-  <section id="contact" class="section container contact">
-    <p class="eyebrow">Contact</p>
-    <h2>Have a role or a project in mind?</h2>
-    <a class="email" href={`mailto:${site.email}`}>{site.email}</a>
   </section>
 </Base>
 
@@ -171,58 +100,5 @@ const usedBy = (tool: string) => projects.filter((p) => p.data.stack.includes(to
     gap: clamp(2.5rem, 2rem + 2vw, 4rem) clamp(1.5rem, 1rem + 2vw, 3rem);
   }
 
-  .more-title { margin-top: var(--section); margin-bottom: 1rem; font-size: var(--step-1); }
-  .more { padding: 0; list-style: none; border-top: 1px solid var(--line); }
-  .more li {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.15rem 1.5rem;
-    padding-block: 1.1rem;
-    border-bottom: 1px solid var(--line);
-  }
-  @media (min-width: 720px) {
-    .more li { grid-template-columns: 1.2fr 1.2fr auto; align-items: baseline; }
-  }
-  .more-name { font-weight: 600; font-size: var(--step-1); text-decoration: none; }
-  .more-name:hover { color: var(--accent); }
-  .more-url { font-size: var(--step--1); color: var(--muted); }
-  .more-url:hover { color: var(--accent); }
-
-  .toolkit {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-    gap: 1.25rem;
-  }
-  .group {
-    display: grid;
-    align-content: start;
-    gap: 0.6rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--line);
-  }
-  .group h3 { font-size: var(--step-1); }
-  .group ul { display: grid; gap: 0.85rem; margin-top: 0.75rem; padding: 0; list-style: none; }
-  .group li { display: grid; gap: 0.1rem; }
-  .tool { font-family: var(--font-mono); font-weight: 500; }
-  .used { font-size: var(--step--1); }
-  .used a { text-decoration-color: var(--line); }
-  .used a:hover { color: var(--text); text-decoration-color: var(--accent); }
-
-  .about { display: grid; gap: 1.5rem; }
-  @media (min-width: 900px) {
-    .about { grid-template-columns: 1fr 2.5fr; }
-  }
-  .about h2 { font-size: var(--step-2); margin-bottom: 1.25rem; max-width: 26ch; }
-  .about p:not(.eyebrow) { color: var(--muted); max-width: 60ch; margin-bottom: 1rem; }
-
-  .contact { display: grid; gap: 1rem; justify-items: start; }
-  .contact h2 { font-size: var(--step-3); }
-  .email {
-    font-size: clamp(1.4rem, 0.8rem + 3.2vw, 3.6rem);
-    font-weight: 600;
-    letter-spacing: -0.03em;
-    color: var(--accent);
-    text-decoration-thickness: 2px;
-    overflow-wrap: anywhere;
-  }
+  .all-work { margin-top: var(--section); }
 </style>
