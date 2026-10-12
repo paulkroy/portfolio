@@ -19,7 +19,15 @@ const links = [
       <span>{site.name}</span>
       <span class="coords mono" aria-hidden="true">37.81°S 144.96°E</span>
     </a>
-    <nav aria-label="Main">
+    <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+      <svg class="icon-open" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+        <path d="M2.5 5h11M2.5 8h11M2.5 11h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+      </svg>
+      <svg class="icon-close" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+        <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+      </svg>
+    </button>
+    <nav id="site-nav" aria-label="Main">
       <ul>
         {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
       </ul>
@@ -28,6 +36,31 @@ const links = [
     <XRay />
   </div>
 </header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header')!;
+  const button = header.querySelector<HTMLButtonElement>('.menu-toggle')!;
+  const nav = header.querySelector<HTMLElement>('#site-nav')!;
+
+  function setOpen(open: boolean) {
+    header.toggleAttribute('data-open', open);
+    button.setAttribute('aria-expanded', String(open));
+    button.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+
+  button.addEventListener('click', () => setOpen(!header.hasAttribute('data-open')));
+  // Picking a link closes the menu, so the next page starts closed
+  nav.addEventListener('click', (e) => {
+    if ((e.target as Element).closest('a')) setOpen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setOpen(false);
+  });
+  // Back on a wide screen the inline nav is shown, so drop the open panel
+  matchMedia('(min-width: 768px)').addEventListener('change', (e) => {
+    if (e.matches) setOpen(false);
+  });
+</script>
 
 <style>
   .site-header {
@@ -78,11 +111,49 @@ const links = [
   }
   nav a:hover { color: var(--text); }
 
+  .menu-toggle {
+    display: none;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    padding: 0;
+    margin-left: auto;
+    border: 1px dashed var(--line);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .menu-toggle:hover { color: var(--text); border-color: var(--muted); }
+  .menu-toggle svg { grid-area: 1 / 1; }
+  .menu-toggle .icon-close { display: none; }
+  .site-header[data-open] .menu-toggle .icon-open { display: none; }
+  .site-header[data-open] .menu-toggle .icon-close { display: block; }
+
+  /* Below tablet and landscape-phone widths the links move into a panel under the bar */
+  @media (max-width: 767px) {
+    .menu-toggle { display: inline-grid; }
+    nav {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      display: none;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+    }
+    .site-header[data-open] nav { display: block; }
+    nav ul { flex-direction: column; gap: 0; padding-block: 0.5rem; }
+    nav a {
+      display: block;
+      padding: 0.9rem var(--space);
+      font-size: var(--step-0);
+      color: var(--text);
+    }
+  }
   @media (max-width: 640px) {
     .coords { display: none; }
     .bar :global(.xray-toggle span) { display: none; }
-  }
-  @media (max-width: 420px) {
-    nav li:nth-child(3) { display: none; }
   }
 </style>
