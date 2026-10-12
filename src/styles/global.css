@@ -1,6 +1,6 @@
 /* ---------- Tokens ---------- */
+/* v3 Amber. Dark is the default; base.astro sets data-theme before first paint. */
 :root {
-  /* v3 Amber: dark only */
   color-scheme: dark;
 
   --bg: #0b0d0f;
@@ -12,9 +12,10 @@
   --muted: #8a929b;
   --accent: #f2b544;
   --accent-hover: #f7c96a;
+  --tertiary: #50c878;
   --accent-ink: #0b0d0f;
   --xray: #5ccfff;
-  --pin: var(--accent);
+  --pin: var(--tertiary);
 
   --font-sans: 'Geist Variable', system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
@@ -32,6 +33,24 @@
   --max: 1366px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --pill: 999px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #e6eaee;
+  --surface: #f2f5f7;
+  --surface-2: #d9dfe5;
+  --line: #c3cbd3;
+  --line-strong: #8a95a1;
+  --text: #161a1f;
+  --muted: #535c67;
+  --accent: #d89a1c;
+  --accent-hover: #c2860f;
+  --tertiary: #059669;
+  --accent-ink: #161a1f;
+  --xray: #0077b6;
+  --pin: var(--tertiary);
 }
 
 /* ---------- Base ---------- */

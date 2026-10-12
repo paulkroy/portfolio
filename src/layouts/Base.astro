@@ -27,6 +27,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#0b0d0f" />
+    <!-- Runs before first paint so the page never flashes the wrong theme -->
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem('theme');
+        const system = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = saved === 'light' || saved === 'dark' ? saved : system;
+      } catch {}
+    </script>
     <meta property="og:type" content="website" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />

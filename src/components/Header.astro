@@ -1,6 +1,7 @@
 ---
 import { site } from '../data/site';
 import XRay from './XRay.astro';
+import ThemeToggle from './ThemeToggle.astro';
 
 const links = [
   { href: '/work', label: 'Work' },
@@ -23,6 +24,7 @@ const links = [
         {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
       </ul>
     </nav>
+    <ThemeToggle />
     <XRay />
   </div>
 </header>
@@ -53,8 +55,8 @@ const links = [
     width: 0.6rem;
     height: 0.6rem;
     border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 25%, transparent);
+    background: var(--tertiary);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--tertiary) 25%, transparent);
   }
   .coords {
     font-size: 0.75rem;

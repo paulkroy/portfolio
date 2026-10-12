@@ -75,4 +75,4 @@
   font-size: 0.95rem;
 }
 
-.map-live { --ctrl-filter: invert(1); }
+[data-theme='dark'] .map-live { --ctrl-filter: invert(1); }

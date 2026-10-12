@@ -241,8 +241,14 @@
   @keyframes pulse { 50% { opacity: 0.35; } }
 
   .spark { width: 120px; height: 28px; overflow: visible; }
-  .spark path { fill: none; stroke: var(--pin); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .spark path { fill: none; stroke: var(--accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
   .spark .fail { stroke: #ff6b5e; stroke-width: 2; opacity: 0.8; vector-effect: non-scaling-stroke; }
+  /* Brighter status colours wash out on the light background, so use deeper ones */
+  :global([data-theme='light']) .dot.up { background: #12a150; box-shadow: 0 0 0 3px color-mix(in oklab, #12a150 25%, transparent); }
+  :global([data-theme='light']) .bad,
+  :global([data-theme='light']) .dot.down { color: #c62828; }
+  :global([data-theme='light']) .dot.down { background: #c62828; box-shadow: 0 0 0 3px color-mix(in oklab, #c62828 25%, transparent); }
+  :global([data-theme='light']) .spark .fail { stroke: #c62828; }
 
   .compact th, .compact td { padding-block: 0.65rem; }
 

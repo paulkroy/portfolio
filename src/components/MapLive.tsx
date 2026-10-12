@@ -17,9 +17,14 @@ export interface Pin {
   coords: [number, number]; // [lat, lng]
 }
 
-// The site is dark only, so the map always uses the dark basemap.
-const STYLE = 'https://tiles.openfreemap.org/styles/dark';
+const STYLES = {
+  dark: 'https://tiles.openfreemap.org/styles/dark',
+  light: 'https://tiles.openfreemap.org/styles/positron',
+};
 const motionQuery = '(prefers-reduced-motion: reduce)';
+
+// The theme lives on <html data-theme>, set by the header toggle.
+const currentStyle = () => (document.documentElement.dataset.theme === 'light' ? STYLES.light : STYLES.dark);
 
 export default function MapLive({ pins }: { pins: Pin[] }) {
   const container = useRef<HTMLDivElement>(null);
@@ -43,7 +48,7 @@ export default function MapLive({ pins }: { pins: Pin[] }) {
 
       const map = new maplibre.Map({
         container: container.current,
-        style: STYLE,
+        style: currentStyle(),
         bounds: [
           [Math.min(...lngs), Math.min(...lats)],
           [Math.max(...lngs), Math.max(...lats)],
@@ -90,10 +95,16 @@ export default function MapLive({ pins }: { pins: Pin[] }) {
       map.on('error', (e) => console.warn('[map]', e.error?.message));
     }
 
+    // Swap the basemap when the header toggle changes the theme.
+    const onTheme = () => mapRef.current?.setStyle(currentStyle());
+    const themeObserver = new MutationObserver(onTheme);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
     init().catch((err) => console.warn('[map] falling back to static map:', err));
 
     return () => {
       cancelled = true;
+      themeObserver.disconnect();
       mapRef.current?.remove();
       mapRef.current = null;
     };
