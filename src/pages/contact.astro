@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+
+<Base title="Contact" description="Get in touch with Paul Roy about a web development role or a website project in Melbourne.">
+  <section class="container section contact">
+    <p class="eyebrow">Contact</p>
+    <h1>Have a role or a project in mind?</h1>
+    <a class="email" href={`mailto:${site.email}`}>{site.email}</a>
+  </section>
+</Base>
+
+<style>
+  .contact { display: grid; gap: 1rem; justify-items: start; }
+  h1 { font-size: var(--step-3); }
+  .email {
+    font-size: clamp(1.4rem, 0.8rem + 3.2vw, 3.6rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--accent);
+    text-decoration-thickness: 2px;
+    overflow-wrap: anywhere;
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+import Base from '../layouts/Base.astro';
+import { getProjects } from '../lib/projects';
+
+const projects = await getProjects();
+
+// Toolkit: every tool links to the live projects that prove it.
+const groups = [
+  { title: 'Client platforms', blurb: 'Sites that clients can edit, sell from and rank with.', tools: ['WordPress', 'Bricks', 'WooCommerce', 'Stripe', 'Rank Math'] },
+  { title: 'Motion & interaction', blurb: 'Animation that explains a service or makes a page feel alive.', tools: ['GSAP', 'Lottie', 'Lenis', 'three.js'] },
+  { title: 'Code & infrastructure', blurb: 'Hand-built sites, deployed to the edge. Including this one.', tools: ['Astro', 'TypeScript', 'Cloudflare'] },
+];
+const usedBy = (tool: string) => projects.filter((p) => p.data.stack.includes(tool));
+---
+
+<Base title="Toolkit" description="The tools Paul Roy uses to build client websites, each linked to the live projects where it's been used.">
+  <section class="container section">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Toolkit</p>
+        <h1>Tools I use</h1>
+      </div>
+      <p>No skill bars. Each tool links to the live projects where I've used it.</p>
+    </div>
+    <div class="toolkit" data-xray="toolkit">
+      {groups.map((g) => (
+        <div class="group">
+          <h2>{g.title}</h2>
+          <p class="muted">{g.blurb}</p>
+          <ul>
+            {g.tools.map((tool) => {
+              const used = usedBy(tool);
+              return (
+                <li>
+                  <span class="tool">{tool}</span>
+                  <span class="used muted">
+                    {used.length > 0
+                      ? used.map((p, i) => <>{i > 0 && ', '}<a href={`/work/${p.id}`}>{p.data.name}</a></>)
+                      : 'This site'}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>
+
+<style>
+  h1 { font-size: var(--step-3); margin-top: 0.5rem; }
+  .toolkit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 1.25rem;
+  }
+  .group {
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  .group h2 { font-size: var(--step-1); }
+  .group ul { display: grid; gap: 0.85rem; margin-top: 0.75rem; padding: 0; list-style: none; }
+  .group li { display: grid; gap: 0.1rem; }
+  .tool { font-family: var(--font-mono); font-weight: 500; }
+  .used { font-size: var(--step--1); }
+  .used a { text-decoration-color: var(--line); }
+  .used a:hover { color: var(--text); text-decoration-color: var(--accent); }
+</style>
