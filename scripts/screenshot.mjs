@@ -7,7 +7,13 @@ import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
 const projectsDir = path.join(root, 'src/content/projects');
-const outDir = path.join(root, 'src/assets/projects');
+
+// `--full` captures the whole desktop page into captures/ for review, instead of
+// the first screen into src/assets/projects/ (which the site uses directly).
+const args = process.argv.slice(2);
+const full = args.includes('--full');
+const only = args.filter((a) => !a.startsWith('--'));
+const outDir = path.join(root, full ? 'captures' : 'src/assets/projects');
 
 const viewports = {
   desktop: { width: 1440, height: 900, deviceScaleFactor: 1 },
@@ -25,13 +31,14 @@ async function readProjects() {
   );
 }
 
-const only = process.argv.slice(2);
 const projects = (await readProjects()).filter((p) => p.url && (!only.length || only.includes(p.slug)));
 await mkdir(outDir, { recursive: true });
 
 const browser = await chromium.launch();
 for (const { slug, url } of projects) {
   for (const [name, viewport] of Object.entries(viewports)) {
+    // Full-page mode is desktop only, since the mobile phone frame stays first-screen
+    if (full && name !== 'desktop') continue;
     const { width, height, ...rest } = viewport;
     const context = await browser.newContext({ viewport: { width, height }, ...rest, reducedMotion: 'reduce' });
     const page = await context.newPage();
@@ -39,9 +46,20 @@ for (const { slug, url } of projects) {
       // Sites with streaming assets (e.g. WebGL) never go network-idle, so fall back to `load`.
       await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 }).catch(() => page.waitForLoadState('load'));
       await page.waitForTimeout(2500);
-      const file = path.join(outDir, `${slug}-${name}.png`);
-      await page.screenshot({ path: file });
-      console.log(`✓ ${slug} ${name}`);
+      if (full) {
+        // Scroll once through the page so lazy images load, then return to the top
+        await page.evaluate(async () => {
+          for (let y = 0; y < document.body.scrollHeight; y += 600) {
+            window.scrollTo(0, y);
+            await new Promise((r) => setTimeout(r, 80));
+          }
+          window.scrollTo(0, 0);
+        });
+        await page.waitForTimeout(1000);
+      }
+      const file = path.join(outDir, `${slug}-${name}${full ? '-full' : ''}.png`);
+      await page.screenshot({ path: file, fullPage: full });
+      console.log(`✓ ${slug} ${name}${full ? ' (full page)' : ''}`);
     } catch (err) {
       console.error(`✗ ${slug} ${name}: ${err.message}`);
     } finally {
