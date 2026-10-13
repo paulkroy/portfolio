@@ -1,0 +1,270 @@
+<div class="chat" data-chat>
+  <div class="nudge" data-chat-nudge hidden role="status">
+    <p>You've been here a while. Can I help you find something?</p>
+    <div class="nudge-actions">
+      <button type="button" class="btn btn--primary btn--small" data-chat-open>Ask a question</button>
+      <button type="button" class="nudge-dismiss" data-chat-dismiss aria-label="Dismiss">✕</button>
+    </div>
+  </div>
+
+  <section id="chat-panel" class="panel" data-chat-panel aria-label="Chat with Paul's assistant" hidden>
+    <header class="panel-head">
+      <div>
+        <p class="panel-title">Ask about Paul's work</p>
+        <p class="panel-note">AI assistant. Paul reads emails himself.</p>
+      </div>
+      <button type="button" class="nudge-dismiss" data-chat-close aria-label="Close chat">✕</button>
+    </header>
+
+    <div class="log" data-chat-log aria-live="polite">
+      <p class="bubble bubble--bot">Hi, I'm Paul's website assistant. What would you like to know?</p>
+    </div>
+
+    <form class="form" data-chat-form>
+      <label class="sr-only" for="chat-input">Your question</label>
+      <input id="chat-input" name="message" type="text" maxlength="500" autocomplete="off" placeholder="Ask a question…" required />
+      <button type="submit" class="btn btn--primary btn--small" data-chat-send>Send</button>
+    </form>
+  </section>
+
+  <button type="button" class="launcher" data-chat-toggle aria-expanded="false" aria-controls="chat-panel">
+    <span class="launcher-dot" aria-hidden="true"></span>
+    Chat
+  </button>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-chat]')!;
+  const nudge = root.querySelector<HTMLElement>('[data-chat-nudge]')!;
+  const panel = root.querySelector<HTMLElement>('[data-chat-panel]')!;
+  const log = root.querySelector<HTMLElement>('[data-chat-log]')!;
+  const form = root.querySelector<HTMLFormElement>('[data-chat-form]')!;
+  const input = form.querySelector<HTMLInputElement>('input')!;
+  const sendButton = form.querySelector<HTMLButtonElement>('[data-chat-send]')!;
+  const launcher = root.querySelector<HTMLButtonElement>('[data-chat-toggle]')!;
+
+  // Count only time the tab is visible, so a background tab doesn't trigger the nudge
+  const NUDGE_AFTER_MS = 3 * 60 * 1000;
+  const NUDGED_KEY = 'chat-nudged';
+  let visibleMs = 0;
+  let last = performance.now();
+  let nudged = false;
+  try {
+    nudged = sessionStorage.getItem(NUDGED_KEY) === '1';
+  } catch {}
+
+  const history: { role: 'user' | 'assistant'; content: string }[] = [];
+
+  function setNudge(show: boolean) {
+    nudge.hidden = !show;
+  }
+
+  let isOpen = false;
+
+  function setOpen(open: boolean) {
+    isOpen = open;
+    panel.hidden = !open;
+    launcher.setAttribute('aria-expanded', String(open));
+    launcher.textContent = open ? 'Close' : 'Chat';
+    if (open) {
+      setNudge(false);
+      input.focus();
+    }
+  }
+
+  function addBubble(text: string, from: 'user' | 'bot') {
+    const p = document.createElement('p');
+    p.className = `bubble bubble--${from}`;
+    p.textContent = text;
+    log.append(p);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // Tick once a second and accumulate visible time
+  setInterval(() => {
+    const now = performance.now();
+    if (document.visibilityState === 'visible') visibleMs += now - last;
+    last = now;
+
+    if (!nudged && visibleMs >= NUDGE_AFTER_MS && !isOpen) {
+      nudged = true;
+      try {
+        sessionStorage.setItem(NUDGED_KEY, '1');
+      } catch {}
+      setNudge(true);
+    }
+  }, 1000);
+
+  root.querySelector('[data-chat-open]')!.addEventListener('click', () => setOpen(true));
+  root.querySelector('[data-chat-dismiss]')!.addEventListener('click', () => setNudge(false));
+  root.querySelector('[data-chat-close]')!.addEventListener('click', () => setOpen(false));
+  launcher.addEventListener('click', () => setOpen(!isOpen));
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+
+    input.value = '';
+    sendButton.disabled = true;
+    addBubble(message, 'user');
+    history.push({ role: 'user', content: message });
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: history.slice(-10) }),
+      });
+      if (res.status === 429) {
+        // Not added to history, so the visitor can resend once the minute is up
+        history.pop();
+        addBubble('Lots of questions at once. Please wait a minute and try again.', 'bot');
+        return;
+      }
+      if (!res.ok) throw new Error(`Chat failed (${res.status})`);
+      const { reply } = (await res.json()) as { reply: string };
+      history.push({ role: 'assistant', content: reply });
+      addBubble(reply || 'Sorry, I could not come up with an answer. Try emailing Paul.', 'bot');
+    } catch {
+      addBubble('Sorry, the assistant is unavailable right now. You can email paulkroy2000@gmail.com instead.', 'bot');
+    } finally {
+      sendButton.disabled = false;
+      input.focus();
+    }
+  });
+</script>
+
+<style>
+  .chat {
+    position: fixed;
+    right: clamp(1rem, 0.5rem + 2vw, 2rem);
+    bottom: clamp(1rem, 0.5rem + 2vw, 2rem);
+    z-index: 60;
+    display: grid;
+    justify-items: end;
+    gap: 0.75rem;
+    font-size: var(--step--1);
+  }
+
+  .launcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7em 1.1em;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .launcher:hover { border-color: var(--muted); }
+  .launcher-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .nudge {
+    display: grid;
+    gap: 0.6rem;
+    max-width: 16rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: 0 12px 30px rgb(0 0 0 / 0.25);
+    animation: chat-rise 0.4s var(--ease) backwards;
+  }
+  .nudge p { color: var(--text); }
+  .nudge-actions { display: flex; align-items: center; gap: 0.5rem; }
+  .nudge-dismiss {
+    padding: 0.25em 0.4em;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer;
+  }
+  .nudge-dismiss:hover { color: var(--text); }
+
+  .btn--small { padding: 0.5em 0.9em; font-size: var(--step--1); }
+
+  .panel {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    width: min(22rem, calc(100vw - 2rem));
+    height: min(28rem, 60vh);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: 0 12px 30px rgb(0 0 0 / 0.25);
+    overflow: hidden;
+    animation: chat-rise 0.35s var(--ease) backwards;
+  }
+  .panel[hidden], .nudge[hidden] { display: none; }
+  .panel-head {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .panel-title { color: var(--text); font-weight: 600; }
+  .panel-note { color: var(--muted); font-size: 0.8rem; }
+
+  .log {
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+    padding: 1rem;
+    overflow-y: auto;
+  }
+  .bubble {
+    max-width: 88%;
+    padding: 0.55em 0.8em;
+    border-radius: var(--radius);
+    line-height: 1.45;
+  }
+  .bubble--bot { justify-self: start; border: 1px solid var(--line); color: var(--text); }
+  .bubble--user { justify-self: end; background: var(--accent); color: var(--accent-ink); }
+
+  .form {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-top: 1px solid var(--line);
+  }
+  .form input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.55em 0.75em;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+  }
+  .form input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .form button:disabled { opacity: 0.5; cursor: progress; }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  @keyframes chat-rise {
+    from { opacity: 0; transform: translateY(12px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nudge, .panel { animation: none; }
+  }
+</style>

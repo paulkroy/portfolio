@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
+import LayoutToggle from '../../components/LayoutToggle.astro';
 import { getProjects, hostname } from '../../lib/projects';
 
 const projects = await getProjects();
@@ -17,7 +18,10 @@ const ordered = [...projects.filter((p) => p.data.featured), ...projects.filter(
       </div>
       <p>Real businesses with real customers. Every project links to the live site, so you can see it working.</p>
     </div>
-    <div class="grid">
+    <div class="grid-tools">
+      <LayoutToggle target="work-grid" />
+    </div>
+    <div class="project-grid" id="work-grid">
       {ordered.map((project, i) => <ProjectCard project={project} xray={i === 0 ? 'screenshots' : undefined} />)}
     </div>
   </section>
@@ -25,9 +29,5 @@ const ordered = [...projects.filter((p) => p.data.featured), ...projects.filter(
 
 <style>
   h1 { font-size: var(--step-3); margin-top: 0.5rem; }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr));
-    gap: clamp(2.5rem, 2rem + 2vw, 4rem) clamp(1.5rem, 1rem + 2vw, 3rem);
-  }
+  .grid-tools { display: flex; justify-content: flex-end; margin-bottom: 1.5rem; }
 </style>

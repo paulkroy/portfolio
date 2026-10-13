@@ -1,0 +1,96 @@
+---
+interface Props {
+  /** id of the project grid this toggle switches */
+  target: string;
+}
+
+const { target } = Astro.props;
+---
+
+<div class="layout-toggle" role="group" aria-label="Project layout" data-layout-toggle={target}>
+  <span class="indicator" aria-hidden="true"></span>
+  <button type="button" data-layout-value="grid" aria-pressed="true">Grid</button>
+  <button type="button" data-layout-value="single" aria-pressed="false">Single</button>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-layout-toggle]').forEach((group) => {
+    const grid = document.getElementById(group.dataset.layoutToggle!);
+    const indicator = group.querySelector<HTMLElement>('.indicator')!;
+    const buttons = group.querySelectorAll<HTMLButtonElement>('[data-layout-value]');
+
+    // Stagger each card's entrance by its position in the grid
+    grid?.querySelectorAll<HTMLElement>(':scope > *').forEach((card, i) => {
+      card.style.setProperty('--i', String(i));
+    });
+
+    // Slide the pill under the pressed button
+    function moveIndicator(button: HTMLButtonElement) {
+      indicator.style.width = `${button.offsetWidth}px`;
+      indicator.style.transform = `translateX(${button.offsetLeft}px)`;
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        if (button.getAttribute('aria-pressed') === 'true') return;
+
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+        moveIndicator(button);
+
+        if (grid) {
+          grid.dataset.layout = button.dataset.layoutValue;
+          // Restart the card entrance animation on every switch
+          grid.classList.remove('is-switching');
+          void grid.offsetWidth;
+          grid.classList.add('is-switching');
+        }
+      });
+    });
+
+    const active = group.querySelector<HTMLButtonElement>('[aria-pressed="true"]')!;
+    moveIndicator(active);
+    // Enable the slide transition only after the first position is set, so it doesn't fly in from the left
+    requestAnimationFrame(() => group.classList.add('is-ready'));
+    window.addEventListener('resize', () => moveIndicator(group.querySelector<HTMLButtonElement>('[aria-pressed="true"]')!));
+  });
+</script>
+
+<style>
+  .layout-toggle {
+    position: relative;
+    display: inline-flex;
+    padding: 0.2rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+  }
+  .indicator {
+    position: absolute;
+    top: 0.2rem;
+    bottom: 0.2rem;
+    left: 0;
+    border-radius: 999px;
+    background: var(--surface);
+  }
+  .layout-toggle.is-ready .indicator {
+    transition: transform 0.4s var(--ease), width 0.4s var(--ease);
+  }
+  .layout-toggle button {
+    position: relative;
+    padding: 0.35em 0.9em;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: var(--step--1);
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+  .layout-toggle button:hover { color: var(--text); }
+  .layout-toggle button[aria-pressed='true'] { color: var(--text); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layout-toggle.is-ready .indicator,
+    .layout-toggle button { transition: none; }
+  }
+</style>

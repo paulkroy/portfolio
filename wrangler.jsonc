@@ -23,6 +23,13 @@
       "migrations_dir": "migrations"
     }
   ],
+  // Workers AI runs the open-weight chat model behind /api/chat.
+  "ai": { "binding": "AI" },
+  // Chat limits. Per visitor (keyed by IP) and site-wide, so a crowd of IPs can't run up the bill.
+  "ratelimits": [
+    { "name": "CHAT_LIMIT_IP", "namespace_id": "7101", "simple": { "limit": 10, "period": 60 } },
+    { "name": "CHAT_LIMIT_SITE", "namespace_id": "7102", "simple": { "limit": 60, "period": 60 } }
+  ],
   "triggers": {
     // Check every client site every 5 minutes.
     "crons": ["*/5 * * * *"]

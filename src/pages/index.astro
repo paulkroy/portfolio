@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import MapStatic from '../components/MapStatic.astro';
 import MapLive, { type Pin } from '../components/MapLive';
 import ProjectCard from '../components/ProjectCard.astro';
+import LayoutToggle from '../components/LayoutToggle.astro';
 import StatusBoard from '../components/StatusBoard.svelte';
 import { getProjects } from '../lib/projects';
 import { site } from '../data/site';
@@ -44,7 +45,10 @@ const suburbs = new Set(projects.map((p) => p.data.location).filter((l) => l !==
       <h2>Selected work</h2>
       <p>Real businesses with real customers. Every project links to the live site, so you can see it working.</p>
     </div>
-    <div class="grid">
+    <div class="grid-tools">
+      <LayoutToggle target="featured-grid" />
+    </div>
+    <div class="project-grid" id="featured-grid">
       {featured.map((project, i) => <ProjectCard project={project} xray={i === 0 ? 'screenshots' : undefined} />)}
     </div>
     <div class="all-work">
@@ -94,11 +98,7 @@ const suburbs = new Set(projects.map((p) => p.data.location).filter((l) => l !==
   .stats dt { font-size: var(--step--1); color: var(--muted); }
   .stats dd { font-size: var(--step-3); font-weight: 600; line-height: 1; letter-spacing: -0.03em; }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr));
-    gap: clamp(2.5rem, 2rem + 2vw, 4rem) clamp(1.5rem, 1rem + 2vw, 3rem);
-  }
+  .grid-tools { display: flex; justify-content: flex-end; margin-bottom: 1.5rem; }
 
   .all-work { margin-top: var(--section); }
 </style>

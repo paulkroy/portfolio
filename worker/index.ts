@@ -5,10 +5,16 @@
 // - A cron trigger checks every client site every 5 minutes and stores the
 //   result in D1.
 // - GET /api/status returns uptime and response-time stats for the status board.
+// - POST /api/chat answers visitor questions with an open model (see chat.ts).
+
+import { handleChat } from './chat';
 
 interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
+  AI: Ai;
+  CHAT_LIMIT_IP: RateLimit;
+  CHAT_LIMIT_SITE: RateLimit;
 }
 
 interface Site {
@@ -145,6 +151,11 @@ export default {
       });
       ctx.waitUntil(cache.put(cacheKey, response.clone()));
       return response;
+    }
+
+    if (url.pathname === '/api/chat') {
+      if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 });
+      return handleChat(request, env);
     }
 
     if (url.pathname.startsWith('/api/')) {
