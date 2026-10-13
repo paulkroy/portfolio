@@ -167,6 +167,29 @@ p { text-wrap: pretty; }
 .section-head h2 { font-size: var(--step-3); }
 .section-head p { max-width: 42ch; color: var(--muted); }
 
+/* ---------- Project grid ---------- */
+/* Two per row by default; LayoutToggle sets data-layout="single" for one per row */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2.5rem, 2rem + 2vw, 4rem) clamp(1.5rem, 1rem + 2vw, 3rem);
+}
+.project-grid[data-layout='single'] { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 759px) {
+  .project-grid { grid-template-columns: minmax(0, 1fr); }
+}
+/* Cards fade up in a stagger when the layout switches (--i set by LayoutToggle) */
+.project-grid.is-switching > * {
+  animation: card-in 0.6s var(--ease) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(18px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-grid.is-switching > * { animation: none; }
+}
+
 /* ---------- Buttons & chips ---------- */
 .btn {
   display: inline-flex;
