@@ -35,6 +35,7 @@ export default function MapLive({ pins }: { pins: Pin[] }) {
   useEffect(() => {
     let cancelled = false;
     let popup: Popup | null = null;
+    let popupPin: HTMLButtonElement | null = null;
     const reduced = window.matchMedia(motionQuery).matches;
 
     async function init() {
@@ -80,6 +81,7 @@ export default function MapLive({ pins }: { pins: Pin[] }) {
             <a class="live-popup__link" href="/work/${pin.slug}">Case study <span aria-hidden="true">→</span></a>`;
           body.querySelector('.live-popup__meta')!.textContent = `${pin.industry} · ${pin.location}`;
           body.querySelector('.live-popup__name')!.textContent = pin.name;
+          popupPin = el;
           popup = new maplibre.Popup({ offset: 16, closeButton: true, maxWidth: '240px', focusAfterOpen: true })
             .setLngLat([pin.coords[1], pin.coords[0]])
             .setDOMContent(body)
@@ -100,10 +102,20 @@ export default function MapLive({ pins }: { pins: Pin[] }) {
     const themeObserver = new MutationObserver(onTheme);
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
+    // Escape closes the popup and returns focus to its pin when focus was inside it
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || !popup) return;
+      const focusWasInPopup = !!document.activeElement?.closest('.maplibregl-popup');
+      popup.remove();
+      if (focusWasInPopup) popupPin?.focus();
+    };
+    document.addEventListener('keydown', onEscape);
+
     init().catch((err) => console.warn('[map] falling back to static map:', err));
 
     return () => {
       cancelled = true;
+      document.removeEventListener('keydown', onEscape);
       themeObserver.disconnect();
       mapRef.current?.remove();
       mapRef.current = null;

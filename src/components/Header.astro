@@ -54,7 +54,11 @@ const links = [
     if ((e.target as Element).closest('a')) setOpen(false);
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') setOpen(false);
+    if (e.key !== 'Escape' || !header.hasAttribute('data-open')) return;
+    // The nav hides on close, so move focus back to the toggle if it was inside the menu
+    const focusWasInNav = nav.contains(document.activeElement);
+    setOpen(false);
+    if (focusWasInNav) button.focus();
   });
   // Back on a wide screen the inline nav is shown, so drop the open panel
   matchMedia('(min-width: 768px)').addEventListener('change', (e) => {
