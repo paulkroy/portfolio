@@ -63,6 +63,8 @@
 
   function setOpen(open: boolean) {
     isOpen = open;
+    // The panel is about to hide, so move focus to the launcher first
+    if (!open && panel.contains(document.activeElement)) launcher.focus();
     panel.hidden = !open;
     launcher.setAttribute('aria-expanded', String(open));
     launcher.textContent = open ? 'Close' : 'Chat';
@@ -99,6 +101,9 @@
   root.querySelector('[data-chat-dismiss]')!.addEventListener('click', () => setNudge(false));
   root.querySelector('[data-chat-close]')!.addEventListener('click', () => setOpen(false));
   launcher.addEventListener('click', () => setOpen(!isOpen));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) setOpen(false);
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

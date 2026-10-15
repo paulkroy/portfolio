@@ -6,7 +6,7 @@ import { Code } from 'astro:components';
 import { annotations } from '../data/xray';
 ---
 
-<button type="button" class="xray-toggle" data-xray-toggle aria-pressed="false" title="Show how this site is built (X)">
+<button type="button" class="xray-toggle" data-xray-toggle aria-pressed="false" title="Show how this site is built (Alt+X)">
   <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
     <rect x="1.5" y="1.5" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-dasharray="2 2" />
     <path d="M5 5l6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -109,8 +109,9 @@ import { annotations } from '../data/xray';
     e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName));
 
   toggle.addEventListener('click', () => setEnabled(!enabled()));
+  // Alt+X rather than a bare X key, so the shortcut can't fire by accident (WCAG 2.1.4)
   document.addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 'x' && !e.metaKey && !e.ctrlKey && !e.altKey && !isTyping(e)) setEnabled(!enabled());
+    if (e.key.toLowerCase() === 'x' && e.altKey && !e.metaKey && !e.ctrlKey && !isTyping(e)) setEnabled(!enabled());
   });
 
   // Shareable: /?xray opens the page with annotations on.
